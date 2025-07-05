@@ -1,0 +1,17 @@
+# .gitignore para backend y frontend
+
+# ASP.NET / Visual Studio
+**/bin/
+**/obj/
+**/.vs/
+*.user
+*.suo
+
+# Node / React
+moviewatcher-frontend/node_modules/
+moviewatcher-frontend/build/
+.env
+
+# Otros
+*.log
+.DS_Store
