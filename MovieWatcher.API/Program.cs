@@ -1,10 +1,14 @@
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
 // Swagger + Controllers
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddMemoryCache();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -15,22 +19,17 @@ builder.Services.AddCors(options =>
                                 .AllowAnyMethod();
                       });
 });
-// ?? Esto es lo que faltaba:
-builder.Services.AddAuthorization();
 
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
-// Swagger UI
+// Swagger, para probar los endpoints de la api a ver si funcionan bien
 app.UseSwagger();
 app.UseSwaggerUI();
-
-
 app.UseHttpsRedirection();
 app.UseCors(MyAllowSpecificOrigins);
 
-// ?? Esto también es necesario para que no tire excepción:
+// Esto fue necesario agregar para que no tire excepción: // "The CORS policy does not allow any methods to be specified." - INVESTIGAR
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();

@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using MovieWatcher.API.Models;
 using Newtonsoft.Json.Linq;
+
 
 namespace MovieWatcher.Api.Controllers
 {
@@ -9,13 +11,26 @@ namespace MovieWatcher.Api.Controllers
     public class PeliculasController : ControllerBase
     {
         private readonly HttpClient httpClient = new();
-        private const string API_KEY = "bb6605f446cd5a7cc23f3a1775ae0e95";
         private const string BASE_URL = "https://api.themoviedb.org/3";
         private const string idioma = "en-EN";
+        private readonly IConfiguration _config;
+        private readonly string API_KEY;
+        private readonly IMemoryCache _cache;
+        public PeliculasController(IConfiguration config, IMemoryCache cache)
+        {
+            _config = config;
+            API_KEY = _config["Tmdb:ApiKey"] ?? throw new InvalidOperationException("API key de TMDb no configurada.");
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        }
 
         [HttpGet("populares")]
         public async Task<IActionResult> GetPopulares()
         {
+           if (_cache.TryGetValue("peliculas_populares", out List<Pelicula> cachedPelis))
+            {
+                return Ok(cachedPelis);
+            }
+
             string url = $"{BASE_URL}/movie/popular?api_key={API_KEY}&language={idioma}&page=1";
             string json = await httpClient.GetStringAsync(url);
 
@@ -31,7 +46,8 @@ namespace MovieWatcher.Api.Controllers
                     FechaEstreno = p["release_date"]?.ToString()
                 })
                 .ToList();
-
+                       
+            _cache.Set("peliculas_populares", pelis, TimeSpan.FromMinutes(30));
             return Ok(pelis);
         }
 

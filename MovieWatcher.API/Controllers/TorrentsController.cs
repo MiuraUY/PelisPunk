@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using MovieWatcher.API.Models;
 using Newtonsoft.Json.Linq;
 using System.Globalization;
+
 
 namespace MovieWatcher.Api.Controllers
 {
@@ -10,12 +12,24 @@ namespace MovieWatcher.Api.Controllers
     public class TorrentsController : ControllerBase
     {
         private readonly HttpClient httpClient = new();
+        private readonly string apiKey;
+        private readonly IMemoryCache _cache;
+
+        public TorrentsController(IConfiguration config, IMemoryCache cache)
+        {
+            apiKey = config["Tmdb:ApiKey"] ?? throw new InvalidOperationException("API key de TMDb no configurada.");
+            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
+        }
 
         [HttpGet("recientes")]
         public async Task<IActionResult> GetTop48h()
         {
-            string url = "https://apibay.org/precompiled/data_top100_48h.json";
+            if (_cache.TryGetValue("torrents_recientes", out List<Torrent> cachedTorrents))
+            {
+                return Ok(cachedTorrents);
+            }
 
+            string url = "https://apibay.org/precompiled/data_top100_48h.json";
             string json = await httpClient.GetStringAsync(url);
             JArray data = JArray.Parse(json);
 
@@ -29,7 +43,6 @@ namespace MovieWatcher.Api.Controllers
                     Size = item["size"]?.ToString(),
                     Category = item["category"]?.ToString(),
                     Imdb = item["imdb"]?.ToString()
-
                 })
                 .ToList();
 
@@ -47,9 +60,9 @@ namespace MovieWatcher.Api.Controllers
                     Tamano = item.Size,
                     Tipo = tipo,
                     PosterUrl = await BuscarPosterTMDbAsync(tituloLimpio, tipo, item.Imdb)
-
                 });
             }
+            _cache.Set("torrents_recientes", resultados, TimeSpan.FromMinutes(30));
 
             return Ok(resultados);
         }
@@ -70,7 +83,6 @@ namespace MovieWatcher.Api.Controllers
                     InfoHash = item["info_hash"]?.ToString(),
                     Category = item["category"]?.ToString(),
                     Imdb = item["imdb"]?.ToString()
-
                 })
                 .ToList();
 
@@ -87,7 +99,6 @@ namespace MovieWatcher.Api.Controllers
                     MagnetLink = $"magnet:?xt=urn:btih:{item.InfoHash}",
                     Tipo = tipo,
                     PosterUrl = await BuscarPosterTMDbAsync(tituloLimpio, tipo, item.Imdb)
-
                 });
             }
 
@@ -134,12 +145,13 @@ namespace MovieWatcher.Api.Controllers
 
         private async Task<string> BuscarPosterTMDbAsync(string query, string tipo, string imdb)
         {
-            string apiKey = "bb6605f446cd5a7cc23f3a1775ae0e95";
+            // Usar la apiKey privada
+            string apiKeyLocal = apiKey;
 
             // Intentar con IMDb ID si está disponible
             if (!string.IsNullOrWhiteSpace(imdb))
             {
-                string url = $"https://api.themoviedb.org/3/find/{imdb}?api_key={apiKey}&external_source=imdb_id";
+                string url = $"https://api.themoviedb.org/3/find/{imdb}?api_key={apiKeyLocal}&external_source=imdb_id";
                 try
                 {
                     string json = await httpClient.GetStringAsync(url);
@@ -164,7 +176,7 @@ namespace MovieWatcher.Api.Controllers
             // Fallback: buscar por título
             if (!string.IsNullOrWhiteSpace(query) && tipo is "movie" or "tv")
             {
-                string url = $"https://api.themoviedb.org/3/search/{tipo}?api_key={apiKey}&query={Uri.EscapeDataString(query)}&language=es-ES";
+                string url = $"https://api.themoviedb.org/3/search/{tipo}?api_key={apiKeyLocal}&query={Uri.EscapeDataString(query)}&language=es-ES";
                 try
                 {
                     string json = await httpClient.GetStringAsync(url);
@@ -184,6 +196,5 @@ namespace MovieWatcher.Api.Controllers
 
             return null;
         }
-
     }
 }

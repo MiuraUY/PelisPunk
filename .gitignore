@@ -6,11 +6,49 @@
 **/.vs/
 *.user
 *.suo
-
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Test.json
+# Archivos de configuración de ASP.NET
+MovieWatcher.API/appsettings.Development.json
+MovieWatcher.API/appsettings.Production.json
+MovieWatcher.API/appsettings.Test.json
+# Archivos de configuración de Entity Framework
+MovieWatcher.API/MovieWatcher.API.csproj.user
+# Archivos de configuración de Swagger
+MovieWatcher.API/SwaggerConfig.cs
+# Archivos de configuración de AutoMapper
+MovieWatcher.API/AutoMapperProfile.cs
+# Archivos de configuración de CORS
+MovieWatcher.API/CorsPolicy.cs
+# Archivos de configuración de Identity 
+MovieWatcher.API/IdentityConfig.cs
 # Node / React
 moviewatcher-frontend/node_modules/
 moviewatcher-frontend/build/
 .env
+moviewatcher-frontend/.env.local
+moviewatcher-frontend/.env.development.local
+moviewatcher-frontend/.env.test.local
+moviewatcher-frontend/.env.production.local
+moviewatcher-frontend/.env.development
+moviewatcher-frontend/.env.test
+moviewatcher-frontend/.env.production
+moviewatcher-frontend/.env.local
+# Archivos de configuración de Tailwind
+moviewatcher-frontend/tailwind.config.js
+moviewatcher-frontend/postcss.config.js
+# Archivos de configuración de Next.js
+moviewatcher-frontend/next.config.js
+# Archivos de configuración de ESLint
+moviewatcher-frontend/.eslintrc.js
+moviewatcher-frontend/.eslintignore
+# Archivos de configuración de Prettier
+moviewatcher-frontend/.prettierrc
+moviewatcher-frontend/.prettierignore
+# Archivos de configuración de TypeScript
+moviewatcher-frontend/tsconfig.json
+moviewatcher-frontend/tsconfig.node.json
 
 # Otros
 *.log
